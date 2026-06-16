@@ -1,0 +1,81 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+  cache:
+    image: valkey/valkey:7
+    command: >
+      valkey-server --save "" --appendonly no
+      --notify-keyspace-events Ex
+      --loglevel notice
+      --requirepass admin123
+    ports:
+      - "6379:6379"
+
+  db:
+    image: postgres:17
+    shm_size: 128mb
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
+      interval: 20s
+      timeout: 5s
+      retries: 6
+    environment:
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: admin123
+      POSTGRES_DB: fragment-composer
+    ports:
+      - "5432:5432"
+
+  db-migration:
+    image: oven/bun:alpine
+    volumes:
+      - ./fragment-composer:/app
+    working_dir: /app
+    command: >
+      sh -c "
+        export DATABASE_URL='postgresql://dev:admin123@db:5432/fragment-composer?schema=public'
+        bunx prisma migrate deploy
+      "
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles: [fragment-composer, full]
+
+  client:
+    image: client:latest
+    depends_on: [rabbitmq]
+    ports:
+      - "3001:3000"
+    environment:
+      RABBIT_HOST: rabbitmq
+    profiles: [client, full]
+
+  fragment-composer:
+    image: fragment-composer:latest
+    depends_on:
+      rabbitmq:
+        condition: service_started
+      cache:
+        condition: service_started
+      db-migration:
+        condition: service_completed_successfully
+    ports:
+      - "3002:3000"
+    environment:
+      CACHE_HOST: cache
+      RABBIT_HOST: rabbitmq
+      DATABASE_URL: "postgresql://dev:admin123@db:5432/fragment-composer?schema=public"
+    profiles: [fragment-composer, full]
+
+networks:
+  default:
+    name: platform
