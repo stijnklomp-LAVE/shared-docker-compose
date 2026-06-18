@@ -23,6 +23,8 @@ services:
   db:
     image: postgres:17
     shm_size: 128mb
+    volumes:
+      - ./db-init:/docker-entrypoint-initdb.d
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}"]
       interval: 20s
@@ -50,13 +52,31 @@ services:
         condition: service_healthy
     profiles: [fragment-composer, full]
 
+  client-migration:
+    image: oven/bun:alpine
+    volumes:
+      - ./client:/app
+    working_dir: /app
+    command: >
+      sh -c "
+        export DATABASE_URL='postgresql://dev:admin123@db:5432/video-editor?schema=public'
+        bunx prisma migrate deploy
+      "
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles: [client, full]
+
   client:
     image: client:latest
-    depends_on: [rabbitmq]
+    depends_on:
+      client-migration:
+        condition: service_completed_successfully
     ports:
       - "3001:3000"
     environment:
       RABBIT_HOST: rabbitmq
+      DATABASE_URL: "postgresql://dev:admin123@db:5432/video-editor?schema=public"
     profiles: [client, full]
 
   fragment-composer:
