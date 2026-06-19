@@ -22,14 +22,23 @@ docker compose --profile full up
 docker compose --profile fragment-composer up
 ```
 
-## Develop client locally with shared infra
+## Develop multiple services in dev mode with shared infra
+
+```sh
+docker compose up -d                                                           # Infra in background
+docker compose -f ../client/docker-compose.yml --profile shared up             # Client with hot-reload
+docker compose -f ../fragment-composer/docker-compose.yml --profile shared up  # Fragment-Composer with hot-reload
+...
+```
+
+## Develop client in dev mode with shared infra
 
 ```sh
 docker compose up -d                                                # Infra in background
 docker compose -f ../client/docker-compose.yml --profile shared up  # Client with hot-reload
 ```
 
-## Develop client standalone (with local infra)
+## Develop client in dev mode (with local infra)
 
 ```sh
 docker compose -f ../client/docker-compose.yml --profile dev up

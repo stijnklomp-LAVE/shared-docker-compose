@@ -13,7 +13,6 @@ CREATE TABLE IF NOT EXISTS "User" (
 CREATE TABLE "Device" (
     "deviceId" TEXT NOT NULL,
     "ownerId" TEXT NOT NULL,
-    "publicKey" TEXT NOT NULL,
     "deviceName" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,

@@ -73,11 +73,11 @@ services:
       client-migration:
         condition: service_completed_successfully
     ports:
-      - "3001:3000"
+      - "3000:3000"
     environment:
       RABBIT_HOST: rabbitmq
       DATABASE_URL: "postgresql://dev:admin123@db:5432/video-editor?schema=public"
-      FRAGMENT_COMPOSER_URL: "http://fragment-composer:3000"
+      FRAGMENT_COMPOSER_URL: "http://fragment-composer:3001"
       JWT_SECRET: "dev-jwt-secret-shared-between-services-at-least-32-chars"
     profiles: [client, full]
 
@@ -91,13 +91,16 @@ services:
       fragment-composer-migration:
         condition: service_completed_successfully
     ports:
-      - "3002:3000"
+      - "3001:3001"
     environment:
       CACHE_HOST: cache
+      DEPLOYMENT_MODE: api
       RABBIT_HOST: rabbitmq
       DATABASE_URL: "postgresql://dev:admin123@db:5432/video-editor?schema=public"
       JWT_SECRET: "dev-jwt-secret-shared-between-services-at-least-32-chars"
     profiles: [fragment-composer, full]
+
+    # TODO: Add fragment-composer worker
 
 networks:
   default:
