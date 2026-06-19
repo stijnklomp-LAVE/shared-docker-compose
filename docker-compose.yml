@@ -37,21 +37,6 @@ services:
     ports:
       - "5432:5432"
 
-  db-migration:
-    image: oven/bun:alpine
-    volumes:
-      - ./fragment-composer:/app
-    working_dir: /app
-    command: >
-      sh -c "
-        export DATABASE_URL='postgresql://dev:admin123@db:5432/fragment-composer?schema=public'
-        bunx prisma migrate deploy
-      "
-    depends_on:
-      db:
-        condition: service_healthy
-    profiles: [fragment-composer, full]
-
   client-migration:
     image: oven/bun:alpine
     volumes:
@@ -67,6 +52,21 @@ services:
         condition: service_healthy
     profiles: [client, full]
 
+  fragment-composer-migration:
+    image: oven/bun:alpine
+    volumes:
+      - ./fragment-composer:/app
+    working_dir: /app
+    command: >
+      sh -c "
+        export DATABASE_URL='postgresql://dev:admin123@db:5432/video-editor?schema=public'
+        bunx prisma migrate deploy
+      "
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles: [fragment-composer, full]
+
   client:
     image: client:latest
     depends_on:
@@ -77,6 +77,8 @@ services:
     environment:
       RABBIT_HOST: rabbitmq
       DATABASE_URL: "postgresql://dev:admin123@db:5432/video-editor?schema=public"
+      FRAGMENT_COMPOSER_URL: "http://fragment-composer:3000"
+      JWT_SECRET: "dev-jwt-secret-shared-between-services-at-least-32-chars"
     profiles: [client, full]
 
   fragment-composer:
@@ -86,14 +88,15 @@ services:
         condition: service_started
       cache:
         condition: service_started
-      db-migration:
+      fragment-composer-migration:
         condition: service_completed_successfully
     ports:
       - "3002:3000"
     environment:
       CACHE_HOST: cache
       RABBIT_HOST: rabbitmq
-      DATABASE_URL: "postgresql://dev:admin123@db:5432/fragment-composer?schema=public"
+      DATABASE_URL: "postgresql://dev:admin123@db:5432/video-editor?schema=public"
+      JWT_SECRET: "dev-jwt-secret-shared-between-services-at-least-32-chars"
     profiles: [fragment-composer, full]
 
 networks:
