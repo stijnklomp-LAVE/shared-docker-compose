@@ -10,6 +10,16 @@ This compose file connects all services. It provides shared infrastructure (Rabb
 
 ## Usage examples
 
+## Seed data
+
+Populate the `video-editor` database with development seed data (user, devices, projects, fragments):
+
+```sh
+./seed.sh
+```
+
+Requires the shared infra to be running and database migrations to have been run.
+
 ## Everything (shared compose, pre-built images)
 
 ```sh
