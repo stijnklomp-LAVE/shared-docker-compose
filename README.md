@@ -12,13 +12,13 @@ This compose file connects all services. It provides shared infrastructure (Rabb
 
 ## Seed data
 
-Populate the `video-editor` database with development seed data (user, devices, projects, fragments):
+Populate the `video-editor` database with development seed data (user, devices, projects, fragments).
+
+Requires the shared infra **and all services** to be running (migrations are applied on service startup).
 
 ```sh
 ./seed.sh
 ```
-
-Requires the shared infra to be running and database migrations to have been run.
 
 ## Everything (shared compose, pre-built images)
 
