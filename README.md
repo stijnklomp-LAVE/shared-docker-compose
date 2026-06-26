@@ -8,7 +8,15 @@ This compose file connects all services. It provides shared infrastructure (Rabb
 - **Application services** (`client`, `fragment-composer`, etc.) are **profile-gated**. Opt in to the ones you need via `--profile`, or use `--profile full` for everything.
 - **Each service's own compose file** has a `shared` profile that connects to the external `shared` network created here, allowing local hot-reload development against the shared infra.
 
-## Usage examples
+## Sync migrations
+
+Each service directory keeps its own copy of Prisma migrations so they can be run independently against the shared DB. When migrations change in the source project, sync them here with the following script:
+
+```sh
+./sync-migrations.sh
+```
+
+You'll be prompted to select which services to sync and can override source paths (defaults to `../client/`, `../fragment-composer/`).
 
 ## Seed data
 
