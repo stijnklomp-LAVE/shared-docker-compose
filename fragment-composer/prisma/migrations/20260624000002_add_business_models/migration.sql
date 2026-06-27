@@ -102,6 +102,8 @@ CREATE TABLE IF NOT EXISTS "TransferRequestParticipant" (
 );
 
 -- Add columns in case the table already existed from another service's migration
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "markedForDeletionAt" TIMESTAMP(3);
+ALTER TABLE "User" ADD COLUMN IF NOT EXISTS "deletionScheduledAt" TIMESTAMP(3);
 ALTER TABLE "Fragment" ADD COLUMN IF NOT EXISTS "creatorDeviceId" TEXT;
 
 -- CreateIndex (idempotent)
