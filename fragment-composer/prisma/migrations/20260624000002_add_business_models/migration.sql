@@ -149,3 +149,48 @@ DO $$ BEGIN
 EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
+
+-- CreateTable (idempotent) -- TimelineLayer and TimelineSegment for timeline editing
+CREATE TABLE IF NOT EXISTS "TimelineLayer" (
+    "id" TEXT NOT NULL,
+    "projectId" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "zIndex" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "TimelineLayer_pkey" PRIMARY KEY ("id")
+);
+
+CREATE TABLE IF NOT EXISTS "TimelineSegment" (
+    "id" TEXT NOT NULL,
+    "layerId" TEXT NOT NULL,
+    "fragmentId" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "order" INTEGER NOT NULL,
+    "inPoint" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "outPoint" DOUBLE PRECISION NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "TimelineSegment_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex (idempotent)
+CREATE UNIQUE INDEX IF NOT EXISTS "TimelineLayer_projectId_zIndex_key" ON "TimelineLayer"("projectId", "zIndex");
+CREATE INDEX IF NOT EXISTS "TimelineSegment_layerId_order_idx" ON "TimelineSegment"("layerId", "order");
+
+-- AddForeignKey (idempotent via DO block)
+DO $$ BEGIN
+    ALTER TABLE "TimelineLayer" ADD CONSTRAINT "TimelineLayer_projectId_fkey" FOREIGN KEY ("projectId") REFERENCES "VideoProject"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    ALTER TABLE "TimelineSegment" ADD CONSTRAINT "TimelineSegment_layerId_fkey" FOREIGN KEY ("layerId") REFERENCES "TimelineLayer"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    ALTER TABLE "TimelineSegment" ADD CONSTRAINT "TimelineSegment_fragmentId_fkey" FOREIGN KEY ("fragmentId") REFERENCES "Fragment"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;

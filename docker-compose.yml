@@ -42,6 +42,7 @@ services:
     volumes:
       - ./client:/app
     working_dir: /app
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     command: >
       sh -c "
         export DATABASE_URL='postgresql://dev:admin123@db:5432/video-editor?schema=public'
@@ -57,6 +58,7 @@ services:
     volumes:
       - ./fragment-composer:/app
     working_dir: /app
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     command: >
       sh -c "
         export DATABASE_URL='postgresql://dev:admin123@db:5432/video-editor?schema=public'
