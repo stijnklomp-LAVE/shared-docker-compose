@@ -20,7 +20,7 @@ You'll be prompted to select which services to sync and can override source path
 
 ## Seed data
 
-Populate the `video-editor` database with development seed data (user, devices, projects, fragments).
+Populate the `video-editor` database mock data.
 
 Requires the shared infra **and all services** to be running (migrations are applied on service startup).
 
