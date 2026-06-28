@@ -70,7 +70,7 @@ services:
     profiles: [fragment-composer, full]
 
   client:
-    image: client:latest
+    image: stijnklomp/client:latest
     depends_on:
       client-migration:
         condition: service_completed_successfully
@@ -84,7 +84,7 @@ services:
     profiles: [client, full]
 
   fragment-composer:
-    image: fragment-composer:latest
+    image: stijnklomp/fragment-composer:latest
     depends_on:
       rabbitmq:
         condition: service_started
