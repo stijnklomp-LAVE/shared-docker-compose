@@ -80,6 +80,8 @@ services:
       RABBIT_HOST: rabbitmq
       DATABASE_URL: "postgresql://dev:admin123@db:5432/video-editor?schema=public"
       FRAGMENT_COMPOSER_URL: "http://fragment-composer:3001"
+      AUTH_SECRET: "dev-secret-change-in-production-at-least-32-chars-long"
+      AUTH_URL: "http://localhost:3000"
       JWT_SECRET: "dev-jwt-secret-shared-between-services-at-least-32-chars"
     profiles: [client, full]
 
