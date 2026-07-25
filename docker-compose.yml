@@ -10,6 +10,13 @@ services:
       timeout: 5s
       retries: 5
 
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    restart: unless-stopped
+
   cache:
     image: valkey/valkey:7
     command: >
@@ -83,6 +90,9 @@ services:
       AUTH_SECRET: "dev-secret-change-in-production-at-least-32-chars-long"
       AUTH_URL: "http://localhost:3000"
       JWT_SECRET: "dev-jwt-secret-shared-between-services-at-least-32-chars"
+      SMTP_HOST: mailpit
+      SMTP_PORT: "1025"
+      EMAIL_FROM: "noreply@video-editor.local"
     profiles: [client, full]
 
   fragment-composer:
@@ -104,7 +114,46 @@ services:
       JWT_SECRET: "dev-jwt-secret-shared-between-services-at-least-32-chars"
     profiles: [fragment-composer, full]
 
-    # TODO: Add fragment-composer worker
+  check-fixtures:
+    image: oven/bun:alpine
+    volumes:
+      - ${CLIENT_PATH:-../client}:/src
+    working_dir: /src
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    command: >
+      sh -c "
+        if [ ! -d node_modules/@playwright ]; then
+          bun install --frozen-lockfile --ignore-scripts --no-optional 2>/dev/null
+        fi
+        bun scripts/check-e2e-fixtures.ts
+      "
+    profiles: [e2e]
+
+  e2e:
+    image: mcr.microsoft.com/playwright:v1.61.0-noble
+    volumes:
+      - ${CLIENT_PATH:-../client}:/src
+    working_dir: /src
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
+    environment:
+      PLAYWRIGHT_BASE_URL: "http://client:3000"
+      DATABASE_URL: "postgresql://dev:admin123@db:5432/video-editor?schema=public"
+    command: >
+      sh -c "
+        if [ ! -d node_modules/@playwright ]; then
+          echo 'node_modules not found — run check-fixtures first.' >&2
+          exit 1
+        fi
+        npx playwright test
+      "
+    depends_on:
+      check-fixtures:
+        condition: service_completed_successfully
+      client:
+        condition: service_started
+      fragment-composer:
+        condition: service_started
+    profiles: [e2e]
 
 networks:
   default:

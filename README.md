@@ -28,6 +28,15 @@ Requires the shared infra **and all services** to be running (migrations are app
 ./seed.sh
 ```
 
+## E2E tests
+
+Start all services in the background, then run tests:
+
+```sh
+docker compose --profile full up -d
+docker compose --profile full run --rm e2e
+```
+
 ## Everything (shared compose, pre-built images)
 
 ```sh
